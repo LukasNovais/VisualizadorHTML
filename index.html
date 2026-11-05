@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador Universal - Sistema Prime</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #f8fafc; }
+        .code-area { font-family: monospace; font-size: 12px; line-height: 1.5; }
+        iframe { border: none; width: 100%; height: 100%; background: #0a0f1d; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <!-- Topbar da Ferramenta -->
+    <header class="bg-slate-900 border-b border-slate-800 px-4 py-3 flex justify-between items-center shrink-0">
+        <div class="flex items-center gap-2">
+            <span class="text-amber-500 font-black text-base">⚡ SISTEMA PRIME</span>
+            <span class="text-xs text-slate-400 font-bold hidden sm:inline">| Visualizador Universal</span>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="carregarCodigoOriginal()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-bold rounded text-slate-300 transition">
+                Restaurar Código Padrão
+            </button>
+        </div>
+    </header>
+
+    <!-- Área Principal Conteúdo -->
+    <div class="flex-1 flex flex-col md:flex-row overflow-hidden">
+
+        <!-- Painel Esquerdo: Entrada de Código -->
+        <div class="w-full md:w-1/2 p-4 flex flex-col bg-slate-900/50 border-r border-slate-800 overflow-y-auto">
+            <div class="flex justify-between items-center mb-2">
+                <label class="text-xs font-bold uppercase tracking-wider text-amber-500">Cole seu Código Completo Aqui:</label>
+                <span class="text-[10px] text-slate-400">Atualização Automática em Tempo Real</span>
+            </div>
+            <textarea id="code-input" oninput="atualizarPreview()" class="code-area flex-1 w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-amber-500 resize-none min-h-[250px]" placeholder="Cole seu HTML aqui..."></textarea>
+        </div>
+
+        <!-- Painel Direito: Simulador Móvel -->
+        <div class="w-full md:w-1/2 p-4 flex flex-col items-center justify-center bg-slate-950 overflow-y-auto">
+            <div class="mb-2 text-center">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Prévia em Tempo Real (Mobile)</span>
+            </div>
+
+            <!-- Moldura de Celular Perfeita -->
+            <div class="w-full max-w-[380px] h-[720px] bg-[#0a0f1d] border-8 border-slate-800 rounded-[45px] shadow-2xl overflow-hidden relative flex flex-col">
+                <iframe id="preview-screen"></iframe>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const codigoPadrao = `<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Prime Transportadora</title>
+    <script src="https://cdn.tailwindcss.com"><\/script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #0a0f1d;
+            height: 100svh; 
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            color: #f8fafc;
+        }
+        main { flex-grow: 1; width: 100%; position: relative; background: #0a0f1d; overflow-y: auto; }
+        .tab-content { display: none; width: 100%; height: 100%; padding: 16px; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        nav {
+            background: #161e2e;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 85px; 
+            padding-bottom: max(15px, env(safe-area-inset-bottom));
+            width: 100%;
+            flex-shrink: 0;
+            z-index: 9999;
+        }
+        .nav-link {
+            flex: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: none;
+            border: none;
+            color: #94a3b8;
+            transition: 0.2s;
+            position: relative;
+            cursor: pointer;
+        }
+        .nav-link svg { width: 24px; height: 24px; fill: currentColor; }
+        .nav-link span { font-size: 10px; font-weight: 700; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .nav-link.active { color: #f59e0b; background: rgba(245, 158, 11, 0.05); }
+        .nav-link.active::after {
+            content: ""; position: absolute; top: 0; width: 30px; height: 3px; background: #f59e0b; border-radius: 0 0 4px 4px;
+        }
+        header { flex-shrink: 0; }
+    </style>
+</head>
+<body>
+
+    <header class="bg-[#161e2e] border-b border-white/5 p-4">
+        <div class="flex justify-between items-center max-w-5xl mx-auto">
+            <div class="flex items-center gap-3">
+                <div class="bg-amber-500 p-2 rounded-lg shadow-lg">
+                    <svg viewBox="0 0 640 512" class="w-5 h-5 fill-[#0a0f1d]"><path d="M624 352h-16V243.9c0-12.7-5.1-24.9-14.1-33.9L494 110.1c-9-9-21.2-14.1-33.9-14.1H416V48c0-26.5-21.5-48-48-48H48C21.5 0 0 21.5 0 48v320c0 26.5 21.5 48 48 48h16c0 53 43 96 96 96s96-43 96-96h128c0 53 43 96 96 96s96-43 96-96h48c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16zM160 464c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm320 0c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm80-208H416V144h44.1l99.9 99.9V256z"/></svg>
+                </div>
+                <div>
+                    <h1 class="text-white text-sm font-black italic uppercase leading-none">Sistema Prime</h1>
+                    <p class="text-[9px] text-amber-500/80 font-bold tracking-widest mt-1">OPERACIONAL ONLINE</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-600/50">
+                <div class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></div>
+                <span class="text-[9px] font-bold text-slate-300 uppercase">Conectado</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section id="aba1" class="tab-content active">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xs font-black uppercase tracking-widest text-amber-500">Gestão de Tabela</h2>
+                <span class="text-[10px] bg-slate-800 px-2 py-1 rounded text-slate-400 font-bold">Ativo</span>
+            </div>
+            <div class="bg-[#161e2e] rounded-xl border border-white/5 p-4 space-y-3">
+                <div class="bg-[#0a0f1d] p-3 rounded-lg border border-white/5 flex justify-between items-center">
+                    <div>
+                        <span class="text-xs font-bold block">Rota SP - GO</span>
+                        <span class="text-[10px] text-slate-400">Carga Seca • 1.100 km</span>
+                    </div>
+                    <span class="text-xs text-amber-400 font-bold">R$ 4.500,00</span>
+                </div>
+                <div class="bg-[#0a0f1d] p-3 rounded-lg border border-white/5 flex justify-between items-center">
+                    <div>
+                        <span class="text-xs font-bold block">Rota RJ - MG</span>
+                        <span class="text-[10px] text-slate-400">Frigorificada • 450 km</span>
+                    </div>
+                    <span class="text-xs text-amber-400 font-bold">R$ 3.200,00</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="aba2" class="tab-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xs font-black uppercase tracking-widest text-amber-500">Calculadora de Frete</h2>
+                <span class="text-[10px] bg-slate-800 px-2 py-1 rounded text-slate-400 font-bold">Online</span>
+            </div>
+            <div class="bg-[#161e2e] rounded-xl border border-white/5 p-4 space-y-4">
+                <div>
+                    <label class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Distância (KM)</label>
+                    <input type="number" id="dist" placeholder="Ex: 800" class="w-full bg-[#0a0f1d] border border-white/10 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Valor por KM (R$)</label>
+                    <input type="number" id="vkm" placeholder="Ex: 4.50" class="w-full bg-[#0a0f1d] border border-white/10 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <button onclick="alert('Cálculo efetuado com sucesso!')" class="w-full bg-amber-500 text-[#0a0f1d] font-black text-xs uppercase py-3 rounded-lg tracking-wider shadow-lg shadow-amber-500/20 active:scale-95 transition-transform cursor-pointer">
+                    Calcular Custo
+                </button>
+            </div>
+        </section>
+
+        <section id="aba3" class="tab-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xs font-black uppercase tracking-widest text-amber-500">Ordem de Serviço</h2>
+                <span class="text-[10px] bg-slate-800 px-2 py-1 rounded text-slate-400 font-bold">Fila</span>
+            </div>
+            <div class="bg-[#161e2e] rounded-xl border border-white/5 p-4 space-y-3">
+                <div class="bg-[#0a0f1d] p-3 rounded-lg border border-white/5">
+                    <p class="text-[10px] text-slate-400 uppercase font-bold">Status Atual</p>
+                    <p class="text-sm font-bold text-white mt-1">Aguardando Liberação de Carga</p>
+                </div>
+                <div class="bg-[#0a0f1d] p-3 rounded-lg border border-white/5">
+                    <p class="text-[10px] text-slate-400 uppercase font-bold">Motorista Vinculado</p>
+                    <p class="text-sm font-bold text-white mt-1">João da Silva (Frota 04)</p>
+                </div>
+                <button onclick="alert('Status da Ordem Atualizado!')" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs uppercase py-3 rounded-lg tracking-wider border border-white/10 cursor-pointer mt-2">
+                    Atualizar Status
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <nav>
+        <button onclick="openTab('aba1', this)" class="nav-link active">
+            <svg viewBox="0 0 512 512"><path d="M64 256V160H224V256H64zm0 64H224V416H64V320zM288 416V320H448V416H288zM448 256H288V160H448V256zM64 32C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V96c0-35.3-28.7-64-64-64H64z"/></svg>
+            <span>Tabela</span>
+        </button>
+        <button onclick="openTab('aba2', this)" class="nav-link">
+            <svg viewBox="0 0 448 512"><path d="M64 32C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V96c0-35.3-28.7-64-64-64H64zM337 209L209 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L303 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/></svg>
+            <span>Calculadora</span>
+        </button>
+        <button onclick="openTab('aba3', this)" class="nav-link">
+            <svg viewBox="0 0 384 512"><path d="M192 0c-41.8 0-77.4 26.7-90.5 64H64C28.7 64 0 92.7 0 128V448c0 35.3 28.7 64 64 64H320c35.3 0 64-28.7 64-64V128c0-35.3-28.7-64-64-64H282.5C269.4 26.7 233.8 0 192 0zm0 64a32 32 0 1 1 0 64 32 32 0 1 1 0-64zM112 192H272c8.8 0 16 7.2 16 16s-7.2 16-16 16H112c-8.8 0-16-7.2-16-16s7.2-16 16-16zM64 272c0-8.8 7.2-16 16-16H304c8.8 0 16 7.2 16 16s-7.2 16-16 16H80c-8.8 0-16-7.2-16-16zM80 352H208c8.8 0 16 7.2 16 16s-7.2 16-16 16H80c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg>
+            <span>Ordem</span>
+        </button>
+    </nav>
+
+    <script>
+        function openTab(tabId, btn) {
+            if (navigator.vibrate) navigator.vibrate(5);
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btn.classList.add('active');
+        }
+    <\/script>
+</body>
+</html>`;
+
+        const textarea = document.getElementById('code-input');
+
+        function carregarCodigoOriginal() {
+            textarea.value = codigoPadrao;
+            atualizarPreview();
+        }
+
+        function atualizarPreview() {
+            const iframe = document.getElementById('preview-screen');
+            const doc = iframe.contentDocument || iframe.contentWindow.document;
+            doc.open();
+            doc.write(textarea.value);
+            doc.close();
+        }
+
+        // Inicializar a ferramenta com o código padrão carregado
+        carregarCodigoOriginal();
+    </script>
+</body>
+</html>
